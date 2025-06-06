@@ -23,8 +23,8 @@ const server = serve({
 				model: "nova-3",
 				language: "en-US",
 				smart_format: true,
-				encoding: "opus",
-				sample_rate: 16000,
+				// encoding: "opus",
+				// sample_rate: 16000,
 				channels: 1,
 			});
 
@@ -37,11 +37,8 @@ const server = serve({
 			});
 
 			connection.on(LiveTranscriptionEvents.Transcript, (data) => {
-				console.log(
-					"Transcript:",
-					data.channel.alternatives[0].transcript
-				);
 				// Send transcription back to the client
+				console.log(data);
 				ws.send(
 					JSON.stringify({
 						type: "transcript",
@@ -68,10 +65,11 @@ const server = serve({
 
 				if (connection) {
 					// Send audio data to Deepgram
-					console.log("Sending to Deepgram:", {
-						size: message.length,
-						firstBytes: Array.from(message.slice(0, 10)), // Log first 10 bytes
-					});
+					// console.log("Sending to Deepgram:", {
+					// 	size: message.length,
+					// 	firstBytes: Array.from(message.slice(0, 10)), // Log first 10 bytes
+					// });
+					console.log(message);
 					connection.send(message);
 				}
 			} else {
