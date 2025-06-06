@@ -9,6 +9,9 @@
   "peerDependencies": {
     "typescript": "^5"
   },
+  "scripts": {
+    "dev": "bun run deepgram.ts"
+  },
   "dependencies": {
     "@deepgram/sdk": "^4.2.0",
     "@types/ws": "^8.18.1",
