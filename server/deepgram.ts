@@ -1,5 +1,7 @@
 import { serve } from "bun";
 import { createClient, LiveTranscriptionEvents } from "@deepgram/sdk";
+import { processTextToSpeech } from "./speech";
+import Agent from "./ChatSession";
 
 // Create Deepgram client
 const deepgram = createClient(process.env.DEEPGRAM_API_KEY || "");
@@ -17,9 +19,11 @@ const server = serve({
 		// Handle WebSocket connections
 		open(ws) {
 			console.log("Client connected");
+			const agent = new Agent();
 
-			// Create a new Deepgram live transcription connection for this client
-			const connection = deepgram.listen.live({
+			(ws as any).agent = agent;
+
+			const transcriber = deepgram.listen.live({
 				model: "nova-3",
 				language: "en-US",
 				smart_format: true,
@@ -28,17 +32,23 @@ const server = serve({
 				channels: 1,
 			});
 
-			// Store the Deepgram connection with the WebSocket
-			(ws as any).deepgramConnection = connection;
+			(ws as any).transcriber = transcriber;
 
 			// Set up Deepgram event handlers
-			connection.on(LiveTranscriptionEvents.Open, () => {
+			transcriber.on(LiveTranscriptionEvents.Open, () => {
 				console.log("Deepgram connection opened");
 			});
 
-			connection.on(LiveTranscriptionEvents.Transcript, (data) => {
+			transcriber.on(LiveTranscriptionEvents.Transcript, (data) => {
 				// Send transcription back to the client
-				console.log(data);
+				console.log(data.channel.alternatives[0].transcript);
+
+				const transcript = data.channel.alternatives[0].transcript;
+
+				if (typeof transcript === "string" && transcript.length > 0) {
+					//
+				}
+
 				ws.send(
 					JSON.stringify({
 						type: "transcript",
@@ -47,7 +57,7 @@ const server = serve({
 				);
 			});
 
-			connection.on(LiveTranscriptionEvents.Error, (error) => {
+			transcriber.on(LiveTranscriptionEvents.Error, (error) => {
 				console.error("Deepgram error:", error);
 				ws.send(
 					JSON.stringify({
@@ -58,31 +68,26 @@ const server = serve({
 			});
 		},
 		// Handle incoming messages
-		message(ws, message) {
+		message(ws, audio) {
 			// Check if the message is binary (audio data)
-			if (message instanceof Uint8Array) {
-				const connection = (ws as any).deepgramConnection;
 
-				if (connection) {
-					// Send audio data to Deepgram
-					// console.log("Sending to Deepgram:", {
-					// 	size: message.length,
-					// 	firstBytes: Array.from(message.slice(0, 10)), // Log first 10 bytes
-					// });
-					console.log(message);
-					connection.send(message);
+			if (audio instanceof Uint8Array) {
+				const transcriber = (ws as any).transcriber;
+
+				if (transcriber) {
+					transcriber.send(audio);
 				}
 			} else {
-				console.log("Received non-binary message:", message);
+				console.log("Received non-binary message:", audio);
 			}
 		},
 		// Handle client disconnection
 		close(ws, code, message) {
 			console.log("Client disconnected");
 			// Close the Deepgram connection
-			const connection = (ws as any).deepgramConnection;
-			if (connection) {
-				connection.finish();
+			const transcriber = (ws as any).transcriber;
+			if (transcriber) {
+				transcriber.finish();
 			}
 		},
 	},

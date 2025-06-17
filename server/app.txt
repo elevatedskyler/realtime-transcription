@@ -1,0 +1,82 @@
+import { Elysia, t } from "elysia";
+import {
+	createClient,
+	ListenLiveClient,
+	LiveTranscriptionEvents,
+} from "@deepgram/sdk";
+import { processTextToSpeech, processUserInput } from "./speech";
+import env from "./env";
+import { uuidv4 } from "zod/v4";
+
+// Create Deepgram client
+const deepgram = createClient(env.DEEPGRAM_API_KEY);
+
+const app = new Elysia()
+
+	.ws("/ws/voice", {
+		open(ws) {
+			const sessionId = uuidv4();
+			(ws as any).sessionId = sessionId;
+
+			const transcriber = deepgram.listen.live({
+				model: "nova-3",
+				language: "en-US",
+				smart_format: true,
+				channels: 1,
+			});
+
+			// Store the transcriber on the websocket instance
+			(ws as any).transcriber = transcriber;
+
+			transcriber.on(LiveTranscriptionEvents.Open, () => {
+				console.log("Deepgram transcriber opened");
+			});
+
+			transcriber.on(LiveTranscriptionEvents.Transcript, (data) => {
+				processTextToSpeech(data.channel.alternatives[0].transcript);
+				ws.send(
+					JSON.stringify({
+						type: "transcript",
+						text: data.channel.alternatives[0].transcript,
+					})
+				);
+			});
+
+			transcriber.on(LiveTranscriptionEvents.Error, (error) => {
+				console.error("Deepgram error:", error);
+				ws.send(
+					JSON.stringify({
+						type: "error",
+						message: "Transcription error occurred",
+					})
+				);
+			});
+		},
+		message(ws, message) {
+			if (message instanceof Uint8Array) {
+				console.log("Received message:", message);
+				const transcriber: ListenLiveClient = (ws as any).transcriber;
+
+				//store audio
+				if (transcriber) {
+					transcriber.send(message);
+				}
+			} else {
+				console.log("Received non-binary message:", message);
+			}
+		},
+		close(ws) {
+			console.log("Client disconnected");
+			const transcriber = (ws as any).transcriber;
+			if (transcriber) {
+				transcriber.finish();
+			}
+		},
+	})
+	.listen(3001);
+
+console.log(
+	`Elysia WebSocket server started on port ${app.server?.port || 3001}`
+);
+
+export type App = typeof app;

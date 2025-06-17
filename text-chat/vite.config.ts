@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,12 +11,12 @@ export default defineConfig({
 			"@": path.resolve(__dirname, "./src"),
 		},
 	},
-	optimizeDeps: {
-		include: ["@swc/helpers"],
-	},
-	build: {
-		commonjsOptions: {
-			include: [/@swc\/helpers/, /node_modules/],
+	server: {
+		proxy: {
+			"/api": {
+				target: "http://localhost:3001",
+				changeOrigin: true,
+			},
 		},
 	},
 });

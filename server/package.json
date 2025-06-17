@@ -10,13 +10,16 @@
     "typescript": "^5"
   },
   "scripts": {
-    "dev": "bun run deepgram.ts"
+    "dev": "bun run --watch deepgram.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^1.3.22",
     "@deepgram/sdk": "^4.2.0",
     "@types/ws": "^8.18.1",
+    "ai": "^4.3.16",
     "assemblyai": "^4.13.1",
     "node-record-lpcm16": "^1.0.1",
+    "openai": "^5.3.0",
     "ws": "^8.18.2"
   }
 }

@@ -1,0 +1,61 @@
+{
+  "id": "k9T4OaMHyL5Bm1hB",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi",
+      "parts": [
+        {
+          "type": "text",
+          "text": "hi"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "Selected: converseWelcome to the chat! You can say things like 'go to settings' or 'start a conversation'.",
+      "parts": [
+        {
+          "type": "step-start"
+        },
+        {
+          "type": "text",
+          "text": "Selected: converseWelcome to the chat! You can say things like 'go to settings' or 'start a conversation'."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "f",
+      "parts": [
+        {
+          "type": "text",
+          "text": "f"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "Selected: converse",
+      "parts": [
+        {
+          "type": "step-start"
+        },
+        {
+          "type": "text",
+          "text": "Selected: converse"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "j",
+      "parts": [
+        {
+          "type": "text",
+          "text": "j"
+        }
+      ]
+    }
+  ]
+}
